@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>VocaFlow - 스마트 단어 암기장 & 플래시카드</title>
+  
+  <!-- PWA & Mobile Web Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VocaFlow">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <!-- Main Responsive Container -->
+  <div class="app-container" id="appContainer">
+
+    <!-- Top App Header -->
+    <header class="app-header">
+      <div class="brand">
+        <img src="./icon.svg" alt="VocaFlow" class="brand-icon">
+        <h1 class="brand-name">VocaFlow</h1>
+      </div>
+
+      <div class="header-actions">
+        <!-- Streak Badge -->
+        <div class="streak-badge" title="연속 학습 일수">
+          <span class="streak-flame">🔥</span>
+          <span id="streakDays">3</span>일
+        </div>
+
+        <!-- Theme Toggle -->
+        <button class="icon-btn" id="themeToggleBtn" title="다크/라이트 테마 변경">
+          🌙
+        </button>
+
+        <!-- Screen Expand Toggle -->
+        <button class="icon-btn" id="expandToggleBtn" title="화면 너비 확장/축소">
+          ⛶
+        </button>
+
+        <!-- Settings Modal Open -->
+        <button class="icon-btn" id="settingsBtn" title="설정">
+          ⚙️
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable Main Content -->
+    <main class="app-content" id="appContent">
+
+      <!-- ==========================================
+           TAB 1: HOME (Dashboard)
+           ========================================== -->
+      <section class="tab-view active" id="tab-home">
+        <div class="welcome-section">
+          <h2 class="welcome-title">오늘의 영단어 플로우 🌊</h2>
+          <p class="welcome-subtitle">망각 곡선에 따라 최적의 타이밍에 복습하세요.</p>
+        </div>
+
+        <!-- Hero Card (Today's Review Action) -->
+        <div class="hero-card">
+          <span class="hero-tag">스마트 간격 반복 (SRS)</span>
+          <h3 class="hero-title" id="heroDueTitle">복습 대기 0개</h3>
+          <p class="hero-desc" id="heroDueDesc">오늘 뇌가 잊어버리기 전에 기억을 강화할 단어가 대기 중입니다.</p>
+          <button class="hero-btn" id="startReviewBtn">
+            <span>⚡ 즉시 복습 시작</span>
+          </button>
+        </div>
+
+        <!-- 3-Box Stats Overview -->
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-num orange" id="statDueCount">0</div>
+            <div class="stat-label">오늘 복습 대기</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num blue" id="statLearningCount">0</div>
+            <div class="stat-label">학습 진행 중</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num green" id="statMasteredCount">0</div>
+            <div class="stat-label">완전 마스터</div>
+          </div>
+        </div>
+
+        <!-- Category Filter Scroll -->
+        <div class="section-header">
+          <h3 class="section-title">학습 카테고리</h3>
+        </div>
+        <div class="chip-scroll" id="categoryChips">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Quick Mode Cards -->
+        <div class="section-header">
+          <h3 class="section-title">학습 트레이닝 모드</h3>
+        </div>
+        <div class="mode-cards">
+          <div class="mode-card" data-mode="flashcards">
+            <div>
+              <div class="mode-icon">🎴</div>
+              <h4 class="mode-title">3D 플래시카드</h4>
+              <p class="mode-subtitle">카드 넘김 & 원어민 발음 반복 훈련</p>
+            </div>
+          </div>
+          <div class="mode-card" data-mode="quiz">
+            <div>
+              <div class="mode-icon">📝</div>
+              <h4 class="mode-title">스마트 퀴즈</h4>
+              <p class="mode-subtitle">객관식 & 리스닝 & 철자 테스트</p>
+            </div>
+          </div>
+          <div class="mode-card" data-mode="speaking">
+            <div>
+              <div class="mode-icon">🎙️</div>
+              <h4 class="mode-title">발음 스피킹</h4>
+              <p class="mode-subtitle">AI 마이크 인식 및 실시간 발음 평가</p>
+            </div>
+          </div>
+          <div class="mode-card" data-mode="wordbook">
+            <div>
+              <div class="mode-icon">📚</div>
+              <h4 class="mode-title">단어장 검색</h4>
+              <p class="mode-subtitle">전체 단어 목록 및 나만의 단어 추가</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 2: FLASHCARDS (3D Flip & SRS)
+           ========================================== -->
+      <section class="tab-view" id="tab-flashcard">
+        <div class="flashcard-header">
+          <button class="icon-btn" id="prevCardBtn" title="이전 단어">◀</button>
+          <div class="card-progress-bar">
+            <div class="card-progress-fill" id="cardProgressFill"></div>
+          </div>
+          <div class="card-counter" id="cardCounter">1 / 10</div>
+          <button class="icon-btn" id="nextCardBtn" title="다음 단어">▶</button>
+        </div>
+
+        <!-- 3D Card Stage -->
+        <div class="flashcard-stage" id="cardStage">
+          <!-- Swipe Indicators -->
+          <div class="swipe-overlay forget" id="swipeForget">다시 보기 ❌</div>
+          <div class="swipe-overlay remember" id="swipeRemember">기억 완료 ⭕</div>
+
+          <div class="flashcard" id="activeCard">
+            <!-- FRONT FACE -->
+            <div class="card-face card-front">
+              <div class="card-top-bar">
+                <span class="card-badge" id="cardFrontBadge">🌱 Level 1</span>
+                <button class="card-star-btn" id="cardStarBtn" title="즐겨찾기">★</button>
+              </div>
+
+              <div class="card-center-content">
+                <h3 class="card-word" id="cardFrontWord">accomplish</h3>
+                <div class="card-phonetic" id="cardFrontPhonetic">/əˈkɑːm.plɪʃ/</div>
+                <div class="card-audio-actions">
+                  <button class="audio-btn" id="cardSpeakBtn" title="원어민 발음 듣기">
+                    🔊 발음 듣기
+                  </button>
+                  <button class="audio-btn" id="cardSpeakSlowBtn" title="느리게 듣기">
+                    🐢 0.75x
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <!-- Speaking Test in Front -->
+                <div class="card-audio-actions" style="margin-bottom: 8px;">
+                  <button class="audio-btn mic-btn" id="cardMicBtn">
+                    🎤 발음 평가하기
+                  </button>
+                </div>
+                <div class="pronunciation-result" id="pronunciationResult">
+                  <!-- Result feedback text -->
+                </div>
+                <div class="card-hint">💡 카드를 터치하면 한글 뜻과 예문이 나타납니다</div>
+              </div>
+            </div>
+
+            <!-- BACK FACE -->
+            <div class="card-face card-back">
+              <div class="card-top-bar">
+                <span class="card-badge" id="cardBackBadge">품사: verb</span>
+                <button class="audio-btn" id="cardBackSpeakBtn" style="padding: 4px 10px; font-size: 0.75rem;">
+                  🔊 다시 듣기
+                </button>
+              </div>
+
+              <div class="card-center-content">
+                <h3 class="card-meaning" id="cardBackMeaning">완수하다, 성취하다</h3>
+                <p class="card-def-en" id="cardBackDefinition">to succeed in doing or finishing something</p>
+                
+                <div class="card-example-box">
+                  <p class="example-en" id="cardBackExampleEn">You can accomplish anything if you focus.</p>
+                  <p class="example-ko" id="cardBackExampleKo">집중하면 당신은 어떤 것이든 성취할 수 있습니다.</p>
+                </div>
+
+                <div class="card-tip-box" id="cardBackTipBox">
+                  <span>💡</span>
+                  <span id="cardBackTip">ac(방향) + complish(채우다) → 완전히 채워 끝마치다</span>
+                </div>
+              </div>
+
+              <div class="card-hint">💡 아래 버튼으로 기억 정도를 체크하세요</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SRS Repetition Action Buttons -->
+        <div class="srs-action-bar">
+          <button class="srs-btn again" data-quality="0">
+            <span class="label">다시 보기</span>
+            <span class="time">1분 후</span>
+          </button>
+          <button class="srs-btn hard" data-quality="3">
+            <span class="label">어려움</span>
+            <span class="time">10분 후</span>
+          </button>
+          <button class="srs-btn good" data-quality="4">
+            <span class="label">알아요</span>
+            <span class="time">1일 후</span>
+          </button>
+          <button class="srs-btn easy" data-quality="5">
+            <span class="label">쉬워요</span>
+            <span class="time">4일 후</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 3: QUIZ (Multi-mode Quiz Engine)
+           ========================================== -->
+      <section class="tab-view" id="tab-quiz">
+        <div class="quiz-header">
+          <div class="section-title">스마트 퀴즈 챌린지</div>
+          <div class="streak-badge" id="quizScoreBadge">점수: 0</div>
+        </div>
+
+        <!-- Quiz Mode Selector Tabs -->
+        <div class="chip-scroll" style="margin-top: 10px;">
+          <div class="category-chip active" data-quiztype="meaning">뜻 맞히기 (객관식)</div>
+          <div class="category-chip" data-quiztype="listening">리스닝 퀴즈 (소리 듣기)</div>
+          <div class="category-chip" data-quiztype="spelling">철자 스펠링 채우기</div>
+          <div class="category-chip" data-quiztype="speaking">마이크 말하기 퀴즈</div>
+        </div>
+
+        <div class="quiz-container" id="quizPlayArea">
+          <!-- Quiz Question Display -->
+          <div class="quiz-question-box">
+            <span class="quiz-mode-tag" id="quizTypeTag">객관식 4지선다</span>
+            <div class="quiz-prompt" id="quizPrompt">appreciate</div>
+            <div class="quiz-prompt-sub" id="quizPromptSub">/əˈpriː.ʃi.eɪt/</div>
+            
+            <div style="margin-top: 14px;" id="quizAudioBtnWrapper">
+              <button class="audio-btn" id="quizListenBtn">🔊 소리 듣기</button>
+            </div>
+          </div>
+
+          <!-- Multiple Choice Options -->
+          <div class="quiz-options" id="quizOptionsContainer">
+            <!-- 4 Options dynamically injected -->
+          </div>
+
+          <!-- Spelling Input Area (Hidden for Multiple Choice) -->
+          <div id="quizSpellingArea" style="display: none;">
+            <div class="quiz-input-wrapper">
+              <input type="text" class="quiz-text-input" id="quizSpellingInput" placeholder="영어 철자를 입력하세요..." autocomplete="off" autocapitalize="none">
+              <button class="quiz-submit-btn" id="quizSpellingSubmit">확인</button>
+            </div>
+          </div>
+
+          <!-- Speaking Quiz Area (Hidden for Multiple Choice) -->
+          <div id="quizSpeakingArea" style="display: none; text-align: center; padding: 10px 0;">
+            <button class="audio-btn mic-btn" id="quizSpeakingMicBtn" style="padding: 12px 24px; font-size: 1rem;">
+              🎤 버튼 누르고 단어 발음하기
+            </button>
+            <div class="pronunciation-result" id="quizSpeakingResult" style="display: block; margin-top: 14px;">
+              목표 단어를 마이크에 대고 정확하게 말해보세요!
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz Completion Screen -->
+        <div class="quiz-result-view" id="quizResultView" style="display: none;">
+          <div class="result-trophy">🏆</div>
+          <div class="result-score" id="quizFinalScore">100점!</div>
+          <div class="result-message" id="quizFinalMsg">완벽합니다! 오늘 학습한 단어를 멋지게 통달하셨습니다.</div>
+          <button class="btn-primary" id="restartQuizBtn" style="margin: 0 auto;">🔄 다른 퀴즈 도전하기</button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 4: WORDBOOK (Search & Custom Words)
+           ========================================== -->
+      <section class="tab-view" id="tab-wordbook">
+        <div class="section-header">
+          <h2 class="section-title">단어장 보관함</h2>
+          <button class="btn-primary" id="openAddWordModalBtn">
+            <span>+ 단어 추가</span>
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="wordbook-toolbar">
+          <div class="search-input-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="wordSearchInput" placeholder="단어, 뜻 또는 예문 검색...">
+          </div>
+        </div>
+
+        <!-- Filter Sub-Chips -->
+        <div class="chip-scroll" id="wordFilterChips">
+          <div class="category-chip active" data-filter="all">전체 (<span id="countFilterAll">0</span>)</div>
+          <div class="category-chip" data-filter="starred">⭐ 즐겨찾기 (<span id="countFilterStarred">0</span>)</div>
+          <div class="category-chip" data-filter="due">⏰ 복습 대기 (<span id="countFilterDue">0</span>)</div>
+          <div class="category-chip" data-filter="mastered">🎓 마스터 (<span id="countFilterMastered">0</span>)</div>
+        </div>
+
+        <!-- Word List -->
+        <div class="word-list" id="wordListContainer">
+          <!-- Dynamically generated word items -->
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 5: STATS (Ebbinghaus Forgetting Curve)
+           ========================================== -->
+      <section class="tab-view" id="tab-stats">
+        <div class="section-header">
+          <h2 class="section-title">학습 기억 통계</h2>
+        </div>
+
+        <!-- Retention Rate Card -->
+        <div class="stats-card">
+          <div class="stats-card-title">
+            <span>🧠</span> 에빙하우스 기억 유지율
+          </div>
+          <div class="retention-meter">
+            <div class="retention-circle" id="retentionCircle">
+              <div class="retention-inner">
+                <span class="retention-value" id="statsRetentionPercent">85%</span>
+                <span class="retention-sub">유지율</span>
+              </div>
+            </div>
+            <div>
+              <p style="font-size: 0.88rem; font-weight: 700; margin-bottom: 4px;">지속적인 주기 복습 중</p>
+              <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                간격 반복 시스템(SM-2)이 단기 기억을 장기 기억으로 전이시키고 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Word Mastery Distribution Bar -->
+        <div class="stats-card">
+          <div class="stats-card-title">
+            <span>📊</span> 숙련도별 단어 분포
+          </div>
+
+          <div class="dist-item">
+            <div class="dist-label-row">
+              <span>미학습 (신규)</span>
+              <span id="distNewCount">0개</span>
+            </div>
+            <div class="dist-bar-track">
+              <div class="dist-bar-fill" id="distNewBar" style="width: 0%; background: #64748b;"></div>
+            </div>
+          </div>
+
+          <div class="dist-item">
+            <div class="dist-label-row">
+              <span>학습 중 (1~4단계)</span>
+              <span id="distLearningCount">0개</span>
+            </div>
+            <div class="dist-bar-track">
+              <div class="dist-bar-fill" id="distLearningBar" style="width: 0%; background: #6366f1;"></div>
+            </div>
+          </div>
+
+          <div class="dist-item">
+            <div class="dist-label-row">
+              <span>완전 암기 (마스터)</span>
+              <span id="distMasteredCount">0개</span>
+            </div>
+            <div class="dist-bar-track">
+              <div class="dist-bar-fill" id="distMasteredBar" style="width: 0%; background: #10b981;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Backup & Reset Controls -->
+        <div class="stats-card">
+          <div class="stats-card-title">
+            <span>💾</span> 데이터 백업 및 관리
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn-primary" id="exportDataBtn" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main);">
+              📥 JSON 백업 다운로드
+            </button>
+            <button class="btn-primary" id="importDataBtn" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main);">
+              📤 JSON 복원
+            </button>
+            <input type="file" id="importFileInput" accept=".json" style="display: none;">
+            <button class="btn-primary" id="resetDataBtn" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;">
+              ⚠️ 초기화 및 샘플 복원
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation Bar (App Tabs) -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="tab-home">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">홈</span>
+      </button>
+      <button class="nav-item" data-tab="tab-flashcard">
+        <span class="nav-icon">🎴</span>
+        <span class="nav-label">플래시카드</span>
+      </button>
+      <button class="nav-item" data-tab="tab-quiz">
+        <span class="nav-icon">📝</span>
+        <span class="nav-label">퀴즈</span>
+      </button>
+      <button class="nav-item" data-tab="tab-wordbook">
+        <span class="nav-icon">📚</span>
+        <span class="nav-label">단어장</span>
+      </button>
+      <button class="nav-item" data-tab="tab-stats">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">학습통계</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==========================================
+       MODAL: 단어 추가/수정 모달
+       ========================================== -->
+  <div class="modal-overlay" id="addWordModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title" id="addWordModalTitle">새 단어 추가</h3>
+        <button class="close-btn" id="closeAddWordModalBtn">✕</button>
+      </div>
+
+      <form id="addWordForm">
+        <div class="form-group">
+          <label class="form-label">영어 단어/표현 *</label>
+          <input type="text" class="form-control" id="inputWord" required placeholder="예: persist">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">한글 뜻 *</label>
+          <input type="text" class="form-control" id="inputMeaning" required placeholder="예: 끈기 있게 계속하다, 지속되다">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">발음 기호 (선택)</label>
+          <input type="text" class="form-control" id="inputPhonetic" placeholder="예: /pɚˈsɪst/">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">카테고리</label>
+          <select class="form-control" id="inputCategory">
+            <option value="basic">🌱 필수 기초</option>
+            <option value="business">💼 비즈니스 & 토익</option>
+            <option value="conversation">💬 회화 & 이디엄</option>
+            <option value="advanced">🎓 고급 & 학술</option>
+            <option value="custom" selected>⭐ 나만의 단어장</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">영어 예문</label>
+          <input type="text" class="form-control" id="inputExampleEn" placeholder="예: You must persist to see real results.">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">예문 해석</label>
+          <input type="text" class="form-control" id="inputExampleKo" placeholder="예: 진정한 결과를 보려면 끈기 있게 지속해야 합니다.">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">암기 꿀팁 / 어원</label>
+          <input type="text" class="form-control" id="inputTip" placeholder="예: per(완전히) + sist(서있다)">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" class="btn-primary" id="cancelAddWordBtn" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); flex: 1; justify-content: center;">
+            취소
+          </button>
+          <button type="submit" class="btn-primary" style="flex: 2; justify-content: center;">
+            저장하기
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: 앱 설정 및 PWA 설치 안내
+       ========================================== -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h3 class="modal-title">앱 환경 설정 ⚙️</h3>
+        <button class="close-btn" id="closeSettingsModalBtn">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">원어민 발음 억양 (TTS Accent)</label>
+        <select class="form-control" id="settingAccent">
+          <option value="en-US">🇺🇸 미국식 영어 (US English)</option>
+          <option value="en-GB">🇬🇧 영국식 영어 (UK English)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">발음 재생 속도</label>
+        <select class="form-control" id="settingSpeed">
+          <option value="0.75">🐢 0.75x (초보자용 천천히)</option>
+          <option value="1.0" selected>🚶 1.0x (표준 속도)</option>
+          <option value="1.25">🏃 1.25x (실전 빠른 속도)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">스마트폰 홈 화면에 앱으로 추가 (PWA)</label>
+        <div style="background: var(--bg-card); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          📱 <strong>아이폰 Safari</strong>: 하단 공유 버튼(⎋) 누른 후 <strong>[홈 화면에 추가]</strong><br>
+          🤖 <strong>안드로이드 Chrome</strong>: 우측 상단 더보기(⋮) 누른 후 <strong>[앱 설치]</strong> 또는 <strong>[홈 화면에 추가]</strong>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button type="button" class="btn-primary" id="saveSettingsBtn" style="width: 100%; justify-content: center;">
+          설정 완료
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Notice -->
+  <div class="toast-notice" id="globalToast">토스트 메시지</div>
+
+  <!-- JavaScript Modules -->
+  <script src="./data/words.js"></script>
+  <script src="./js/srs.js"></script>
+  <script src="./js/speech.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>

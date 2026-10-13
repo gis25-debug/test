@@ -1,0 +1,18 @@
+{
+  "name": "VocaFlow - 스마트 단어 암기장 & 플래시카드",
+  "short_name": "VocaFlow",
+  "description": "망각 곡선 간격 반복(SRS) 알고리즘과 원어민 발음(TTS), 발음 평가(STT)가 탑재된 스마트 영어 단어 학습 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
